@@ -590,7 +590,7 @@ static int decode_text_chunk(PNGDecContext *s, GetByteContext *gb, int compresse
 static int decode_ihdr_chunk(AVCodecContext *avctx, PNGDecContext *s,
                              GetByteContext *gb)
 {
-    if (bytestream2_get_bytes_left(gb) != 13)
+    if (bytestream2_get_bytes_left(gb) < 13)
         return AVERROR_INVALIDDATA;
 
     if (s->pic_state & PNG_IDAT) {
@@ -1087,7 +1087,7 @@ static int decode_sbit_chunk(AVCodecContext *avctx, PNGDecContext *s,
 
     channels = s->color_type & PNG_COLOR_MASK_PALETTE ? 3 : ff_png_get_nb_channels(s->color_type);
 
-    if (remainder != channels) {
+    if (remainder < channels) {
         av_log(avctx, AV_LOG_WARNING, "Invalid sBIT size: %d, expected: %d\n", remainder, channels);
         /* not enough space left in chunk to read info */
         if (remainder < channels)
@@ -1187,7 +1187,7 @@ static int decode_fctl_chunk(AVCodecContext *avctx, PNGDecContext *s,
     uint32_t sequence_number;
     int cur_w, cur_h, x_offset, y_offset, dispose_op, blend_op;
 
-    if (bytestream2_get_bytes_left(gb) != APNG_FCTL_CHUNK_SIZE)
+    if (bytestream2_get_bytes_left(gb) < APNG_FCTL_CHUNK_SIZE)
         return AVERROR_INVALIDDATA;
 
     if (!(s->hdr_state & PNG_IHDR)) {
@@ -1570,7 +1570,7 @@ static int decode_frame_common(AVCodecContext *avctx, PNGDecContext *s,
         }
         case MKTAG('c', 'L', 'L', 'i'): /* legacy spelling, for backwards compat */
         case MKTAG('c', 'L', 'L', 'I'):
-            if (bytestream2_get_bytes_left(&gb_chunk) != 8) {
+            if (bytestream2_get_bytes_left(&gb_chunk) < 8) {
                 av_log(avctx, AV_LOG_WARNING, "Invalid cLLI chunk size: %d\n", bytestream2_get_bytes_left(&gb_chunk));
                 break;
             }
@@ -1580,7 +1580,7 @@ static int decode_frame_common(AVCodecContext *avctx, PNGDecContext *s,
             break;
         case MKTAG('m', 'D', 'C', 'v'): /* legacy spelling, for backward compat */
         case MKTAG('m', 'D', 'C', 'V'):
-            if (bytestream2_get_bytes_left(&gb_chunk) != 24) {
+            if (bytestream2_get_bytes_left(&gb_chunk) < 24) {
                 av_log(avctx, AV_LOG_WARNING, "Invalid mDCV chunk size: %d\n", bytestream2_get_bytes_left(&gb_chunk));
                 break;
             }
